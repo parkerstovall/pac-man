@@ -1,0 +1,10 @@
+{
+    "name": "pac-man-monorepo",
+    "private": true,
+    "scripts": {
+        "lint": "cd packages/example && npm run lint && cd ../pac-man && npm run lint"
+    },
+    "workspaces": [
+        "packages/*"
+    ]
+}
