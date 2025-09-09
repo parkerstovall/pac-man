@@ -1,39 +1,41 @@
 import { Scene } from 'phaser'
-import { loadAnimations, loadTextures } from './load-animations'
+import { Wall } from './sprites/wall'
+import { generateMap } from 'pac-man-map-generator'
+import { Pellet } from './sprites/pellet'
+import { Pacman } from './sprites/pac-man'
 
 class PacManScene extends Scene {
-  private pacman?: Phaser.GameObjects.Sprite
+  private pacman!: Pacman
   constructor() {
     super('PacManScene')
   }
 
   preload() {
     this.load.setPath('/assets')
-    this.load.image('pacman', 'spritesheet.png')
+    this.load.image('spritesheet', 'spritesheet.png')
+    Wall.addWallGraphics(this)
+    Pellet.addPelletGraphics(this)
   }
 
   create() {
-    loadTextures(this.textures)
-    loadAnimations(this.anims)
+    this.pacman = new Pacman(this)
 
-    this.pacman = this.add.sprite(100, 100, 'pacman', 'pacman-right')
+    const walls = this.physics.add.staticGroup()
+    const map = generateMap()
+    map.forEach((row, y) => {
+      row.forEach((block, x) => {
+        if (block?.type === 'wall') {
+          walls.add(new Wall(this, walls, x, y))
+        } else if (block?.type === 'empty') {
+          new Pellet(this, x, y)
+        }
+      })
+    })
+    this.physics.add.collider(this.pacman, walls)
   }
 
   update(): void {
-    if (!this.input.keyboard) {
-      return
-    }
-
-    const cursors = this.input.keyboard.createCursorKeys()
-    if (cursors.left.isDown) {
-      this.pacman?.play('pacman-left', true)
-    } else if (cursors.right.isDown) {
-      this.pacman?.play('pacman-right', true)
-    } else if (cursors.up.isDown) {
-      this.pacman?.play('pacman-up', true)
-    } else if (cursors.down.isDown) {
-      this.pacman?.play('pacman-down', true)
-    }
+    this.pacman.update()
   }
 }
 
@@ -42,15 +44,18 @@ export function createPacManScene(container: HTMLDivElement) {
     type: Phaser.AUTO,
     parent: container,
     backgroundColor: '#5e5f60ff',
-    width: 1024,
-    height: 768,
+    width: 896,
+    height: 992,
+    physics: {
+      default: 'arcade',
+      arcade: {
+        gravity: { x: 0, y: 0 },
+        debug: true,
+      },
+    },
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-      max: {
-        width: 800,
-        height: 600,
-      },
+      autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     scene: [PacManScene],
   }

@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "dev": "tsc --watch",
     "lint": "eslint ./src --fix",
     "patch": "npm version patch --no-git-tag-version",
     "prepublishOnly": "npm run build"
@@ -62,6 +63,7 @@
     "printWidth": 80
   },
   "dependencies": {
+    "pac-man-map-generator": "^1.0.4",
     "phaser": "^3.90.0"
   }
 }

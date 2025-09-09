@@ -18,5 +18,5 @@ export function PacMan() {
     }
   }, [])
 
-  return <div ref={container}></div>
+  return <div style={{ width: '448px', height: '496px' }} ref={container}></div>
 }

@@ -2,9 +2,13 @@
     "name": "pac-man-monorepo",
     "private": true,
     "scripts": {
+        "dev": "concurrently \"npm run dev --prefix packages/example\" \"npm run dev --prefix packages/pac-man\"",
         "lint": "cd packages/example && npm run lint && cd ../pac-man && npm run lint"
     },
     "workspaces": [
         "packages/*"
-    ]
+    ],
+    "devDependencies": {
+        "concurrently": "^9.2.1"
+    }
 }
