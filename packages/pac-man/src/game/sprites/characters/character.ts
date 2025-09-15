@@ -1,0 +1,126 @@
+import { PacManMap } from 'pac-man-map-generator'
+import { directions } from '../../constants'
+
+export abstract class Character extends Phaser.Physics.Arcade.Sprite {
+  protected readonly gameMap: PacManMap
+  protected direction: number = -1
+  protected position: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
+  protected abstract readonly speed: number
+
+  private readonly textureMap: Record<number, string>
+
+  constructor(
+    scene: Phaser.Scene,
+    gameMap: PacManMap,
+    x: number,
+    y: number,
+    textureMap: Record<number, string>,
+    texture: string,
+    startingFrame?: string,
+  ) {
+    super(scene, x, y, texture, startingFrame)
+
+    this.gameMap = gameMap
+    this.position = { x, y }
+    this.textureMap = textureMap
+
+    scene.add.existing(this)
+    scene.physics.add.existing(this)
+    this.setCollideWorldBounds(false)
+  }
+
+  update() {
+    const cell = {
+      x: Math.floor(this.x / 32),
+      y: Math.floor(this.y / 32),
+    }
+
+    const center = {
+      x: cell.x * 32 + 16,
+      y: cell.y * 32 + 16,
+    }
+
+    const tolerance = 4
+    const inCenterX = Math.abs(this.x - center.x) < tolerance
+    const inCenterY = Math.abs(this.y - center.y) < tolerance
+
+    // Snap to center if not already there
+    if (
+      (this.direction === directions.RIGHT ||
+        this.direction === directions.LEFT) &&
+      !inCenterY
+    ) {
+      this.setPosition(this.x, this.position.y)
+    }
+
+    if (
+      (this.direction === directions.UP ||
+        this.direction === directions.DOWN) &&
+      !inCenterX
+    ) {
+      this.setPosition(this.position.x, this.y)
+    }
+
+    // At cell center
+    if (inCenterX && inCenterY) {
+      this.position = center
+      this.onCenter(cell)
+    }
+  }
+
+  protected abstract onCenter(cell: Phaser.Types.Math.Vector2Like): void
+
+  protected canMove(
+    cell: { x: number; y: number },
+    direction: number,
+  ): boolean {
+    const targetCell = { x: cell.x, y: cell.y }
+
+    switch (direction) {
+      case directions.LEFT:
+        targetCell.x -= 1
+        break
+      case directions.RIGHT:
+        targetCell.x += 1
+        break
+      case directions.UP:
+        targetCell.y -= 1
+        break
+      case directions.DOWN:
+        targetCell.y += 1
+        break
+      default:
+        return false
+    }
+
+    // Always allow teleporting through left/right edges
+    if (targetCell.x < 0 || targetCell.x > 27) {
+      return true
+    }
+
+    const type = this.gameMap[targetCell.y]?.[targetCell.x]?.type
+    return type === 'empty' || type === 'teleporter'
+  }
+
+  protected changeDirection(direction: number) {
+    this.direction = direction
+    switch (direction) {
+      case directions.LEFT:
+        this.setVelocity(-this.speed, 0)
+        this.anims.play(this.textureMap[directions.LEFT], true)
+        break
+      case directions.RIGHT:
+        this.setVelocity(this.speed, 0)
+        this.anims.play(this.textureMap[directions.RIGHT], true)
+        break
+      case directions.UP:
+        this.setVelocity(0, -this.speed)
+        this.anims.play(this.textureMap[directions.UP], true)
+        break
+      case directions.DOWN:
+        this.setVelocity(0, this.speed)
+        this.anims.play(this.textureMap[directions.DOWN], true)
+        break
+    }
+  }
+}

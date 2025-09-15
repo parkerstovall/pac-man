@@ -19,10 +19,10 @@ export class PacManScene extends Scene {
   preload() {
     this.load.setPath('/assets')
     this.load.image('spritesheet', 'spritesheet.png')
-    this.createGraphics()
   }
 
   create() {
+    this.createGraphics()
     const map = generateMap()
     this.pacman = new Pacman(this, map)
     const items = this.physics.add.staticGroup()
@@ -70,6 +70,8 @@ export class PacManScene extends Scene {
   }
 
   private createGraphics() {
+    Pacman.loadTextures(this.textures)
+    Pacman.loadAnimations(this.anims)
     Wall.addWallGraphics(this)
     Pellet.addPelletGraphics(this)
     SuperPellet.addSuperPelletGraphics(this)

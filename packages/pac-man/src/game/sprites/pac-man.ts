@@ -1,92 +1,54 @@
 import { PacManMap } from 'pac-man-map-generator/dist/types'
-import { directions } from '../contants'
+import { directions } from '../constants'
+import { Character } from './characters/character'
 
-export class Pacman extends Phaser.Physics.Arcade.Sprite {
-  private direction: number = -1
+export class Pacman extends Character {
   private nextDir: number = -1
-  private readonly gameMap: PacManMap
-  private position: { x: number; y: number } = { x: 0, y: 0 }
-  private readonly speed = 160
+  protected readonly speed = 160
 
   constructor(scene: Phaser.Scene, gameMap: PacManMap) {
     const startingPos = { x: 14 * 32 + 16, y: 19 * 32 + 16 }
 
-    Pacman.loadTextures(scene.textures)
-    Pacman.loadAnimations(scene.anims)
+    const pacmanTextureMap = {
+      [directions.LEFT]: 'pacman-left',
+      [directions.RIGHT]: 'pacman-right',
+      [directions.UP]: 'pacman-up',
+      [directions.DOWN]: 'pacman-down',
+    }
 
     super(
       scene,
+      gameMap,
       startingPos.x,
       startingPos.y,
+      pacmanTextureMap,
       'spritesheet',
       'pacman-right-large',
     )
-
-    this.gameMap = gameMap
-    this.position = startingPos
-
-    scene.add.existing(this)
-    scene.physics.add.existing(this)
-    this.setCollideWorldBounds(false)
 
     if (scene.input.keyboard) {
       this.setEventListeners(scene.input.keyboard)
     }
   }
 
-  update() {
-    const cell = {
-      x: Math.floor(this.x / 32),
-      y: Math.floor(this.y / 32),
+  onCenter(cell: Phaser.Types.Math.Vector2Like) {
+    // Change direction if possible
+    if (this.nextDir !== -1 && this.canMove(cell, this.nextDir)) {
+      this.changeDirection(this.nextDir)
+      this.nextDir = -1
     }
 
-    const center = {
-      x: cell.x * 32 + 16,
-      y: cell.y * 32 + 16,
+    // Stop if can't continue in current direction
+    else if (!this.canMove(cell, this.direction)) {
+      this.setVelocity(0, 0)
+      this.anims.stop()
     }
 
-    const tolerance = 4
-    const inCenterX = Math.abs(this.x - center.x) < tolerance
-    const inCenterY = Math.abs(this.y - center.y) < tolerance
-
-    // Snap to center if not already there
-    if (
-      (this.direction === directions.RIGHT ||
-        this.direction === directions.LEFT) &&
-      !inCenterY
-    ) {
-      this.setPosition(this.x, this.position.y)
-    }
-
-    if (
-      (this.direction === directions.UP ||
-        this.direction === directions.DOWN) &&
-      !inCenterX
-    ) {
-      this.setPosition(this.position.x, this.y)
-    }
-
-    // At new cell center
-    if (inCenterX && inCenterY) {
-      this.position = center
-
-      // Change direction if possible
-      if (this.nextDir !== -1 && this.canMove(cell, this.nextDir)) {
-        this.changeDirection(this.nextDir)
-      }
-
-      // Stop if can't continue in current direction
-      else if (!this.canMove(cell, this.direction)) {
-        this.setVelocity(0, 0)
-        this.anims.stop()
-      }
-
-      // Teleporting logic
-      if (cell.x < 0) {
-        this.setPosition(32 * 27 + 16, this.y)
-      } else if (cell.x > 27) {
-        this.setPosition(16, this.y)
-      }
+    // Teleporting logic
+    if (cell.x < 0) {
+      this.setPosition(32 * 27 + 16, this.y)
+    } else if (cell.x > 27) {
+      this.setPosition(16, this.y)
     }
   }
 
@@ -123,58 +85,6 @@ export class Pacman extends Phaser.Physics.Arcade.Sprite {
     input.on('keydown-W', up)
     input.on('keydown-DOWN', down)
     input.on('keydown-S', down)
-  }
-
-  private canMove(cell: { x: number; y: number }, direction: number): boolean {
-    const targetCell = { x: cell.x, y: cell.y }
-
-    switch (direction) {
-      case directions.LEFT:
-        targetCell.x -= 1
-        break
-      case directions.RIGHT:
-        targetCell.x += 1
-        break
-      case directions.UP:
-        targetCell.y -= 1
-        break
-      case directions.DOWN:
-        targetCell.y += 1
-        break
-      default:
-        return false
-    }
-
-    // Always allow teleporting through left/right edges
-    if (targetCell.x < 0 || targetCell.x > 27) {
-      return true
-    }
-
-    const type = this.gameMap[targetCell.y]?.[targetCell.x]?.type
-    return type === 'empty' || type === 'teleporter'
-  }
-
-  private changeDirection(direction: number) {
-    this.direction = direction
-    this.nextDir = -1
-    switch (direction) {
-      case directions.LEFT:
-        this.setVelocity(-this.speed, 0)
-        this.anims.play('pacman-left', true)
-        break
-      case directions.RIGHT:
-        this.setVelocity(this.speed, 0)
-        this.anims.play('pacman-right', true)
-        break
-      case directions.UP:
-        this.setVelocity(0, -this.speed)
-        this.anims.play('pacman-up', true)
-        break
-      case directions.DOWN:
-        this.setVelocity(0, this.speed)
-        this.anims.play('pacman-down', true)
-        break
-    }
   }
 
   static loadTextures(textures: Phaser.Textures.TextureManager) {
