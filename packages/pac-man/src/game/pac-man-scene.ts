@@ -7,6 +7,8 @@ import { ScoreDisplay } from './ui/score-display'
 import { SuperPellet } from './sprites/super-pellet'
 import { Item } from './sprites/abstracts/item'
 import { ActionItem } from './sprites/abstracts/action-item'
+import { Ghost } from './sprites/ghosts/ghost'
+import { Blinky } from './sprites/ghosts/blinky'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
@@ -18,7 +20,14 @@ export class PacManScene extends Scene {
 
   preload() {
     this.load.setPath('/assets')
-    this.load.image('spritesheet', 'spritesheet.png')
+
+    const spriteSheet = new URL(
+      './../../assets/spritesheet.png',
+      import.meta.url,
+    ).href
+
+    console.log('Loading spritesheet from:', spriteSheet)
+    this.load.image('spritesheet', spriteSheet)
   }
 
   create() {
@@ -63,6 +72,9 @@ export class PacManScene extends Scene {
       undefined,
       this,
     )
+
+    //Ghosts
+    new Blinky(this, map, 13 * 32 + 16, 11 * 32 + 16)
   }
 
   update(): void {
@@ -72,6 +84,7 @@ export class PacManScene extends Scene {
   private createGraphics() {
     Pacman.loadTextures(this.textures)
     Pacman.loadAnimations(this.anims)
+    Ghost.loadTextures(this.textures)
     Wall.addWallGraphics(this)
     Pellet.addPelletGraphics(this)
     SuperPellet.addSuperPelletGraphics(this)
