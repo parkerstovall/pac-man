@@ -1,6 +1,5 @@
 import { PacManMap } from 'pac-man-map-generator'
 import { Ghost } from './ghost'
-import { directions } from '../../constants'
 import { Character } from '../characters/character'
 
 export class Blinky extends Ghost {
@@ -11,22 +10,12 @@ export class Blinky extends Ghost {
     x: number,
     y: number,
   ) {
-    const blinkyTextureMap = {
-      [directions.LEFT]: 'blinky-left',
-      [directions.RIGHT]: 'blinky-right',
-      [directions.UP]: 'blinky-up',
-      [directions.DOWN]: 'blinky-down',
-    }
-
-    super(scene, gameMap, x, y, blinkyTextureMap, pacman, 'blinky-up')
+    super(scene, gameMap, x, y, pacman, 'blinky')
   }
 
+  // Blinky always chases Pac-Man directly
   onCenter() {
-    this.target = {
-      x: Math.floor(this.pacman.position.x / 32),
-      y: Math.floor(this.pacman.position.y / 32),
-    }
-
+    this.target = this.pacman.gridPosition
     super.onCenter()
   }
 }

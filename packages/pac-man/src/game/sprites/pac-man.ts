@@ -67,13 +67,6 @@ export class Pacman extends Character {
       this.setVelocity(0, 0)
       this.anims.stop()
     }
-
-    // Teleporting logic
-    if (cell.x < -1) {
-      this.setPosition(32 * 28, this.y)
-    } else if (cell.x > 27) {
-      this.setPosition(-32, this.y)
-    }
   }
 
   private setEventListeners(input: Phaser.Input.Keyboard.KeyboardPlugin) {

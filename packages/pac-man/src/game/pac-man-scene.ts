@@ -10,6 +10,9 @@ import { ActionItem } from './sprites/abstracts/action-item'
 import { Ghost } from './sprites/ghosts/ghost'
 import { Blinky } from './sprites/ghosts/blinky'
 import { PauseMenu } from './pause-scene'
+import { Pinky } from './sprites/ghosts/pinky'
+import { Inky } from './sprites/ghosts/inky'
+import { Clyde } from './sprites/ghosts/clyde'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
@@ -82,7 +85,28 @@ export class PacManScene extends Scene {
 
     //Ghosts
     this.ghosts.push(
-      new Blinky(this, map, this.pacman, 13 * 32 + 16, 13 * 32 + 16),
+      new Blinky(this, map, this.pacman, 10 * 32 + 16, 13 * 32 + 16),
+      new Pinky(this, map, this.pacman, 12 * 32 + 16, 13 * 32 + 16),
+      new Clyde(
+        this,
+        map,
+        this.pacman,
+        14 * 32 + 16,
+        13 * 32 + 16,
+        fourCorners[2],
+      ),
+    )
+
+    // Inky needs a reference to Blinky to determine its target
+    this.ghosts.push(
+      new Inky(
+        this,
+        map,
+        this.pacman,
+        16 * 32 + 16,
+        13 * 32 + 16,
+        this.ghosts[0],
+      ),
     )
   }
 

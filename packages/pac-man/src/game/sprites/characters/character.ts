@@ -3,7 +3,8 @@ import { directions } from '../../constants'
 
 export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   position: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
-  protected direction: number = -1
+  gridPosition: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
+  direction: number = -1
   protected readonly gameMap: PacManMap
   protected abstract readonly speed: number
 
@@ -64,6 +65,23 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     // At cell center
     if (inCenterX && inCenterY) {
       this.position = center
+      this.gridPosition = cell
+
+      // Teleporting logic
+      if (cell.x < -1) {
+        this.setPosition(32 * 28, this.y)
+      } else if (cell.x > 27) {
+        this.setPosition(-32, this.y)
+      }
+
+      if (
+        !this.gameMap[cell.y]?.[cell.x] ||
+        this.gameMap[cell.y]?.[cell.x]?.type === 'teleporter'
+      ) {
+        // Do nothing else if on a teleporter
+        return
+      }
+
       this.onCenter(cell)
     }
   }
@@ -121,6 +139,21 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
         this.setVelocity(0, this.speed)
         this.anims.play(this.textureMap[directions.DOWN], true)
         break
+    }
+  }
+
+  protected getOppositeDirection(direction: number): number {
+    switch (direction) {
+      case directions.LEFT:
+        return directions.RIGHT
+      case directions.RIGHT:
+        return directions.LEFT
+      case directions.UP:
+        return directions.DOWN
+      case directions.DOWN:
+        return directions.UP
+      default:
+        return -1
     }
   }
 }

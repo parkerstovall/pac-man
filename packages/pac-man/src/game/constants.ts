@@ -5,6 +5,13 @@ export const directions = {
   DOWN: 3,
 }
 
+export const directionsArray = [
+  { x: 0, y: -1, dir: directions.UP },
+  { x: 0, y: 1, dir: directions.DOWN },
+  { x: -1, y: 0, dir: directions.LEFT },
+  { x: 1, y: 0, dir: directions.RIGHT },
+]
+
 // 2px per second base speed
 export const BASE_SPEED = 120
 

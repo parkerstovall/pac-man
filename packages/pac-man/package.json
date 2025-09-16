@@ -68,7 +68,6 @@
   },
   "dependencies": {
     "pac-man-map-generator": "^1.0.4",
-    "phaser": "^3.90.0",
-    "shortest-path": "^1.0.1"
+    "phaser": "^3.90.0"
   }
 }

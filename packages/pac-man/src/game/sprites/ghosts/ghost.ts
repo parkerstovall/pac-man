@@ -1,47 +1,50 @@
 import { PacManMap } from 'pac-man-map-generator'
 import { Character } from '../characters/character'
-import { shortestPath } from 'shortest-path'
-import { directions, GHOST_SPEED } from '../../constants'
+import { directions, directionsArray, GHOST_SPEED } from '../../constants'
 
 export abstract class Ghost extends Character {
   protected readonly speed: number = GHOST_SPEED
   protected readonly pacman: Character
-  protected readonly aStarMap: (0 | null)[][]
+  protected readonly gameMap: PacManMap
   protected target: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
-  private gridCoords: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
+  private previousGridCoords: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
 
   constructor(
     scene: Phaser.Scene,
     gameMap: PacManMap,
     x: number,
     y: number,
-    textureMap: Record<number, string>,
     pacman: Character,
-    startingFrame?: string,
+    ghostName: string,
   ) {
+    const startingFrame = `${ghostName}-up`
+    const textureMap = {
+      [directions.LEFT]: `${ghostName}-left`,
+      [directions.RIGHT]: `${ghostName}-right`,
+      [directions.UP]: `${ghostName}-up`,
+      [directions.DOWN]: `${ghostName}-down`,
+    }
     super(scene, gameMap, x, y, textureMap, 'spritesheet', startingFrame)
 
     this.pacman = pacman
-    this.aStarMap = gameMap.map((row) =>
-      row.map((cell) => (cell?.type === 'empty' ? 0 : null)),
-    )
+    this.gameMap = gameMap
   }
 
   onCenter() {
-    const newCoords = {
-      x: Math.floor(this.position.x / 32),
-      y: Math.floor(this.position.y / 32),
-    }
+    const newCoords = this.gridPosition
+    // console.log(
+    //   `Ghost: ${this.constructor.name}, Target: ${this.target.x},${this.target.y}`,
+    // )
 
     // Only recalculate path if the ghost has moved to a new grid square
     if (
-      newCoords.x === this.gridCoords.x &&
-      newCoords.y === this.gridCoords.y
+      newCoords.x === this.previousGridCoords.x &&
+      newCoords.y === this.previousGridCoords.y
     ) {
       return
     }
 
-    this.gridCoords = newCoords
+    this.previousGridCoords = newCoords
 
     if (this.direction === -1 || this.isAtIntersection()) {
       this.mapPathToTarget(this.target)
@@ -53,60 +56,41 @@ export abstract class Ghost extends Character {
 
   private mapPathToTarget(target: Phaser.Types.Math.Vector2Like) {
     // If already at the target, do nothing
-    if (this.gridCoords.x === target.x && this.gridCoords.y === target.y) {
+    if (
+      this.previousGridCoords.x === target.x &&
+      this.previousGridCoords.y === target.y
+    ) {
       return
     }
 
-    // Make the previous block in the aStarMap a wall
-    // to ensure the ghost doesn't double back on itself
-    let prev: Phaser.Types.Math.Vector2Like | undefined = undefined
-    if (this.direction !== -1) {
-      prev = { x: this.gridCoords.x, y: this.gridCoords.y }
-      if (this.direction === directions.UP) {
-        prev.y += 1
-      } else if (this.direction === directions.DOWN) {
-        prev.y -= 1
-      } else if (this.direction === directions.LEFT) {
-        prev.x += 1
-      } else if (this.direction === directions.RIGHT) {
-        prev.x -= 1
+    // Calculate the shortest distance from
+    // each surrounding square to the target
+    // excluding the backwards direction
+    const directionsToCheck = directionsArray.filter(
+      (d) => d.dir !== this.getOppositeDirection(this.direction),
+    )
+
+    let shortestDistance = Infinity
+    let bestDirection = this.direction
+
+    directionsToCheck.forEach((d) => {
+      const newX = this.previousGridCoords.x + d.x
+      const newY = this.previousGridCoords.y + d.y
+
+      if (
+        this.gameMap[newY]?.[newX]?.type !== 'wall' &&
+        this.gameMap[newY]?.[newX]?.type !== 'ghost-house'
+      ) {
+        const distance = Math.hypot(target.x - newX, target.y - newY)
+        if (distance < shortestDistance) {
+          shortestDistance = distance
+          bestDirection = d.dir
+        }
       }
-    }
+    })
 
-    let originalValue: 0 | null = null
-    if (prev) {
-      originalValue = this.aStarMap[prev.y]?.[prev.x]
-      if (originalValue === 0) {
-        this.aStarMap[prev.y][prev.x] = null
-      }
-    }
-
-    // Find the shortest path using A*
-    const path = shortestPath(this.aStarMap, this.gridCoords, target)
-
-    // Restore the previous block's value
-    if (prev && originalValue === 0) {
-      this.aStarMap[prev.y][prev.x] = originalValue
-    }
-
-    const nextSquare = path[1] // The first element is the current position
-    if (!nextSquare) {
-      return
-    }
-
-    const gridX = Math.floor(this.position.x / 32)
-    const gridY = Math.floor(this.position.y / 32)
-    if (nextSquare.x > gridX) {
-      this.direction = directions.RIGHT
-    } else if (nextSquare.x < gridX) {
-      this.direction = directions.LEFT
-    } else if (nextSquare.y > gridY) {
-      this.direction = directions.DOWN
-    } else if (nextSquare.y < gridY) {
-      this.direction = directions.UP
-    }
-
-    this.changeDirection(this.direction)
+    // Move in the best direction
+    this.changeDirection(bestDirection)
   }
 
   private isAtIntersection(): boolean {
@@ -116,23 +100,13 @@ export abstract class Ghost extends Character {
     }
 
     let paths = 0
-    const directions = [
-      { x: 0, y: -1 }, // Up
-      { x: 0, y: 1 }, // Down
-      { x: -1, y: 0 }, // Left
-      { x: 1, y: 0 }, // Right
-    ]
-
-    directions.forEach((dir) => {
+    directionsArray.forEach((dir) => {
       const newX = cell.x + dir.x
       const newY = cell.y + dir.y
 
       if (
-        newY >= 0 &&
-        newY < this.aStarMap.length &&
-        newX >= 0 &&
-        newX < this.aStarMap[0].length &&
-        this.aStarMap[newY][newX] === 0
+        this.gameMap[newY]?.[newX]?.type !== 'wall' &&
+        this.gameMap[newY]?.[newX]?.type !== 'ghost-house'
       ) {
         paths++
       }
@@ -142,7 +116,7 @@ export abstract class Ghost extends Character {
   }
 
   private checkForWall() {
-    if (!this.canMove(this.gridCoords, this.direction)) {
+    if (!this.canMove(this.previousGridCoords, this.direction)) {
       this.mapPathToTarget(this.target)
     }
   }
