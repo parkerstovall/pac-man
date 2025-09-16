@@ -4,7 +4,7 @@ export class Pellet extends Item {
   readonly points: number = 10
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x * 32 + 12, y * 32 + 12, 'pellet')
+    super(scene, x, y, 12, 'pellet')
   }
 
   static addPelletGraphics(scene: Phaser.Scene) {

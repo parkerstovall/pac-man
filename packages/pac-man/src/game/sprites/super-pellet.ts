@@ -5,7 +5,7 @@ export class SuperPellet extends ActionItem {
   readonly points: number = 50
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x * 32 + 8, y * 32 + 8, 'super-pellet')
+    super(scene, x, y, 8, 'super-pellet')
   }
 
   onCollect() {

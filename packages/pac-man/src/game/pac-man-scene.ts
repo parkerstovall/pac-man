@@ -9,9 +9,11 @@ import { Item } from './sprites/abstracts/item'
 import { ActionItem } from './sprites/abstracts/action-item'
 import { Ghost } from './sprites/ghosts/ghost'
 import { Blinky } from './sprites/ghosts/blinky'
+import { PauseMenu } from './pause-scene'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
+  private ghosts: Ghost[] = []
   private scoreDisplay!: ScoreDisplay
 
   constructor() {
@@ -19,21 +21,23 @@ export class PacManScene extends Scene {
   }
 
   preload() {
-    this.load.setPath('/assets')
-
     const spriteSheet = new URL(
       './../../assets/spritesheet.png',
       import.meta.url,
     ).href
 
-    console.log('Loading spritesheet from:', spriteSheet)
     this.load.image('spritesheet', spriteSheet)
   }
 
   create() {
+    // Pause functionality
+    this.input.keyboard?.on('keydown-P', () => {
+      this.scene.pause()
+      this.scene.launch('PauseMenu')
+    })
+
     this.createGraphics()
     const map = generateMap()
-    this.pacman = new Pacman(this, map)
     const items = this.physics.add.staticGroup()
     const fourCorners = SuperPellet.getFourCorners(map)
 
@@ -42,6 +46,7 @@ export class PacManScene extends Scene {
         if (block?.type === 'wall') {
           new Wall(this, x, y)
         } else if (block?.type === 'empty' && (x !== 14 || y !== 19)) {
+          // Place super pellets in the four corners
           if (fourCorners.some((corner) => corner.x === x && corner.y === y)) {
             items.add(new SuperPellet(this, x, y))
             return
@@ -52,12 +57,13 @@ export class PacManScene extends Scene {
       })
     })
 
+    this.pacman = new Pacman(this, map)
+
     this.scoreDisplay = new ScoreDisplay(this, 4, 4)
     this.physics.add.overlap(
       this.pacman,
       items,
       (_pacman, item) => {
-        item.destroy()
         if (!(item instanceof Item)) {
           return
         }
@@ -68,17 +74,21 @@ export class PacManScene extends Scene {
 
         this.scoreDisplay.addPoints(item.points)
         item.destroy()
+        this.pacman.eatPellet(item.coords.x, item.coords.y)
       },
       undefined,
       this,
     )
 
     //Ghosts
-    new Blinky(this, map, 13 * 32 + 16, 11 * 32 + 16)
+    this.ghosts.push(
+      new Blinky(this, map, this.pacman, 13 * 32 + 16, 13 * 32 + 16),
+    )
   }
 
   update(): void {
     this.pacman.update()
+    this.ghosts.forEach((ghost) => ghost.update())
   }
 
   private createGraphics() {
@@ -102,14 +112,14 @@ export function createPacManScene(container: HTMLDivElement) {
       default: 'arcade',
       arcade: {
         gravity: { x: 0, y: 0 },
-        debug: false,
+        debug: true,
       },
     },
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [PacManScene],
+    scene: [PacManScene, PauseMenu],
   }
 
   return new Phaser.Game(config)

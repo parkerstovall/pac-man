@@ -1,9 +1,16 @@
 import { PacManMap } from 'pac-man-map-generator'
 import { Ghost } from './ghost'
 import { directions } from '../../constants'
+import { Character } from '../characters/character'
 
 export class Blinky extends Ghost {
-  constructor(scene: Phaser.Scene, gameMap: PacManMap, x: number, y: number) {
+  constructor(
+    scene: Phaser.Scene,
+    gameMap: PacManMap,
+    pacman: Character,
+    x: number,
+    y: number,
+  ) {
     const blinkyTextureMap = {
       [directions.LEFT]: 'blinky-left',
       [directions.RIGHT]: 'blinky-right',
@@ -11,10 +18,15 @@ export class Blinky extends Ghost {
       [directions.DOWN]: 'blinky-down',
     }
 
-    super(scene, gameMap, x, y, blinkyTextureMap, 'blinky-up')
+    super(scene, gameMap, x, y, blinkyTextureMap, pacman, 'blinky-up')
   }
 
-  onCenter(cell: Phaser.Types.Math.Vector2Like) {
-    console.log('Blinky on center', cell)
+  onCenter() {
+    this.target = {
+      x: Math.floor(this.pacman.position.x / 32),
+      y: Math.floor(this.pacman.position.y / 32),
+    }
+
+    super.onCenter()
   }
 }

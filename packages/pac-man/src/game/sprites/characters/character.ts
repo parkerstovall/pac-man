@@ -2,9 +2,9 @@ import { PacManMap } from 'pac-man-map-generator'
 import { directions } from '../../constants'
 
 export abstract class Character extends Phaser.Physics.Arcade.Sprite {
-  protected readonly gameMap: PacManMap
+  position: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
   protected direction: number = -1
-  protected position: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
+  protected readonly gameMap: PacManMap
   protected abstract readonly speed: number
 
   private readonly textureMap: Record<number, string>

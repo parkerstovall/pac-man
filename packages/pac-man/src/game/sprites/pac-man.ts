@@ -1,10 +1,16 @@
 import { PacManMap } from 'pac-man-map-generator/dist/types'
-import { directions } from '../constants'
+import {
+  directions,
+  PAC_MAN_SPEED,
+  PAC_MAN_SPEED_EATING,
+  PAC_MAN_SPEED_TUNNEL,
+} from '../constants'
 import { Character } from './characters/character'
 
 export class Pacman extends Character {
   private nextDir: number = -1
-  protected readonly speed = 160
+  private eatCoords: string | null = null
+  protected speed = PAC_MAN_SPEED
 
   constructor(scene: Phaser.Scene, gameMap: PacManMap) {
     const startingPos = { x: 14 * 32 + 16, y: 19 * 32 + 16 }
@@ -31,7 +37,25 @@ export class Pacman extends Character {
     }
   }
 
-  onCenter(cell: Phaser.Types.Math.Vector2Like) {
+  eatPellet(x: number, y: number) {
+    this.eatCoords = `${x},${y}`
+  }
+
+  protected onCenter(cell: Phaser.Types.Math.Vector2Like) {
+    const key = `${cell.x},${cell.y}`
+
+    if (this.eatCoords === key) {
+      this.speed = PAC_MAN_SPEED_EATING
+      this.changeDirection(this.direction) // Refresh velocity
+    } else if (this.gameMap[cell.y]?.[cell.x]?.type === 'teleporter') {
+      this.speed = PAC_MAN_SPEED_TUNNEL
+      this.changeDirection(this.direction) // Refresh velocity
+    } else {
+      this.eatCoords = null
+      this.speed = PAC_MAN_SPEED
+      this.changeDirection(this.direction) // Refresh velocity
+    }
+
     // Change direction if possible
     if (this.nextDir !== -1 && this.canMove(cell, this.nextDir)) {
       this.changeDirection(this.nextDir)
@@ -45,36 +69,28 @@ export class Pacman extends Character {
     }
 
     // Teleporting logic
-    if (cell.x < 0) {
-      this.setPosition(32 * 27 + 16, this.y)
+    if (cell.x < -1) {
+      this.setPosition(32 * 28, this.y)
     } else if (cell.x > 27) {
-      this.setPosition(16, this.y)
+      this.setPosition(-32, this.y)
     }
   }
 
   private setEventListeners(input: Phaser.Input.Keyboard.KeyboardPlugin) {
     const left = () => {
-      if (this.direction !== directions.RIGHT) {
-        this.nextDir = directions.LEFT
-      }
+      this.nextDir = directions.LEFT
     }
 
     const right = () => {
-      if (this.direction !== directions.LEFT) {
-        this.nextDir = directions.RIGHT
-      }
+      this.nextDir = directions.RIGHT
     }
 
     const up = () => {
-      if (this.direction !== directions.DOWN) {
-        this.nextDir = directions.UP
-      }
+      this.nextDir = directions.UP
     }
 
     const down = () => {
-      if (this.direction !== directions.UP) {
-        this.nextDir = directions.DOWN
-      }
+      this.nextDir = directions.DOWN
     }
 
     input.on('keydown-LEFT', left)
