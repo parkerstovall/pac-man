@@ -8,10 +8,11 @@ export class Pinky extends Ghost {
     scene: Phaser.Scene,
     gameMap: PacManMap,
     pacman: Character,
-    x: number,
-    y: number,
+    scatterTarget: Phaser.Types.Math.Vector2Like,
   ) {
-    super(scene, gameMap, x, y, pacman, 'pinky')
+    const x = 13 * 32 + 16
+    const y = 11 * 32 + 16
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'pinky')
   }
 
   // Pinky tries to position itself 4 tiles ahead of Pac-Man

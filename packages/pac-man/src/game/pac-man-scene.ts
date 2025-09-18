@@ -84,29 +84,16 @@ export class PacManScene extends Scene {
     )
 
     //Ghosts
+    // Corner order: top-left, top-right, bottom-left, bottom-right
     this.ghosts.push(
-      new Blinky(this, map, this.pacman, 10 * 32 + 16, 13 * 32 + 16),
-      new Pinky(this, map, this.pacman, 12 * 32 + 16, 13 * 32 + 16),
-      new Clyde(
-        this,
-        map,
-        this.pacman,
-        14 * 32 + 16,
-        13 * 32 + 16,
-        fourCorners[2],
-      ),
+      new Pinky(this, map, this.pacman, fourCorners[0]),
+      new Blinky(this, map, this.pacman, fourCorners[1]),
+      new Clyde(this, map, this.pacman, fourCorners[2]),
     )
 
     // Inky needs a reference to Blinky to determine its target
     this.ghosts.push(
-      new Inky(
-        this,
-        map,
-        this.pacman,
-        16 * 32 + 16,
-        13 * 32 + 16,
-        this.ghosts[0],
-      ),
+      new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
     )
   }
 

@@ -7,10 +7,11 @@ export class Blinky extends Ghost {
     scene: Phaser.Scene,
     gameMap: PacManMap,
     pacman: Character,
-    x: number,
-    y: number,
+    scatterTarget: Phaser.Types.Math.Vector2Like,
   ) {
-    super(scene, gameMap, x, y, pacman, 'blinky')
+    const x = 14 * 32 + 16
+    const y = 11 * 32 + 16
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'blinky')
   }
 
   // Blinky always chases Pac-Man directly

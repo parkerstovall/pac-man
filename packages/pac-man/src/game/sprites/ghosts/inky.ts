@@ -9,11 +9,12 @@ export class Inky extends Ghost {
     scene: Phaser.Scene,
     gameMap: PacManMap,
     pacman: Character,
-    x: number,
-    y: number,
     blinky: Character,
+    scatterTarget: Phaser.Types.Math.Vector2Like,
   ) {
-    super(scene, gameMap, x, y, pacman, 'inky')
+    const x = 12 * 32 + 16
+    const y = 14 * 32 + 16
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'inky')
     this.blinky = blinky
   }
 

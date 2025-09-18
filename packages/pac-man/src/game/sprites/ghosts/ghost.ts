@@ -6,6 +6,10 @@ export abstract class Ghost extends Character {
   protected readonly speed: number = GHOST_SPEED
   protected readonly pacman: Character
   protected readonly gameMap: PacManMap
+  protected readonly scatterTarget: Phaser.Types.Math.Vector2Like = {
+    x: 0,
+    y: 0,
+  }
   protected target: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
   private previousGridCoords: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
 
@@ -14,6 +18,7 @@ export abstract class Ghost extends Character {
     gameMap: PacManMap,
     x: number,
     y: number,
+    scatterTarget: Phaser.Types.Math.Vector2Like,
     pacman: Character,
     ghostName: string,
   ) {
@@ -28,6 +33,7 @@ export abstract class Ghost extends Character {
 
     this.pacman = pacman
     this.gameMap = gameMap
+    this.scatterTarget = scatterTarget
   }
 
   onCenter() {
