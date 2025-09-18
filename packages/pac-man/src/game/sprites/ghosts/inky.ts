@@ -4,6 +4,8 @@ import { Character } from '../characters/character'
 import { directions } from '../../constants'
 
 export class Inky extends Ghost {
+  protected readonly pelletCountToLeaveHouse = 30
+  protected readonly timerToLeaveHouse = 5000 // milliseconds
   private readonly blinky: Character
   constructor(
     scene: Phaser.Scene,
@@ -12,10 +14,11 @@ export class Inky extends Ghost {
     blinky: Character,
     scatterTarget: Phaser.Types.Math.Vector2Like,
   ) {
-    const x = 12 * 32 + 16
-    const y = 14 * 32 + 16
+    const x = 12.75 * 32
+    const y = 13.5 * 32
     super(scene, gameMap, x, y, scatterTarget, pacman, 'inky')
     this.blinky = blinky
+    this.setStartTimer()
   }
 
   // Inky tries to position itself based on both Blinky's and Pac-Man's positions

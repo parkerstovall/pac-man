@@ -4,15 +4,18 @@ import { Character } from '../characters/character'
 import { directions } from '../../constants'
 
 export class Pinky extends Ghost {
+  protected readonly pelletCountToLeaveHouse = 0
+  protected readonly timerToLeaveHouse = 0 // milliseconds
   constructor(
     scene: Phaser.Scene,
     gameMap: PacManMap,
     pacman: Character,
     scatterTarget: Phaser.Types.Math.Vector2Like,
   ) {
-    const x = 13 * 32 + 16
-    const y = 11 * 32 + 16
+    const x = 14 * 32
+    const y = 13.5 * 32
     super(scene, gameMap, x, y, scatterTarget, pacman, 'pinky')
+    this.setStartTimer()
   }
 
   // Pinky tries to position itself 4 tiles ahead of Pac-Man

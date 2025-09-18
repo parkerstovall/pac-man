@@ -11,30 +11,35 @@ export class Pacman extends Character {
   private nextDir: number = -1
   private eatCoords: string | null = null
   protected speed = PAC_MAN_SPEED
+  private hasMoved: boolean = false
 
   constructor(scene: Phaser.Scene, gameMap: PacManMap) {
-    const startingPos = { x: 14 * 32 + 16, y: 19 * 32 + 16 }
+    const x = 14 * 32
+    const y = 17 * 32 + 16
 
-    const pacmanTextureMap = {
+    const texMap = {
       [directions.LEFT]: 'pacman-left',
       [directions.RIGHT]: 'pacman-right',
       [directions.UP]: 'pacman-up',
       [directions.DOWN]: 'pacman-down',
     }
 
-    super(
-      scene,
-      gameMap,
-      startingPos.x,
-      startingPos.y,
-      pacmanTextureMap,
-      'spritesheet',
-      'pacman-right-large',
-    )
+    super(scene, gameMap, x, y, texMap, 'spritesheet', 'pacman-whole')
 
     if (scene.input.keyboard) {
       this.setEventListeners(scene.input.keyboard)
     }
+  }
+
+  update() {
+    // Game starts
+    if (this.nextDir !== -1 && !this.hasMoved) {
+      this.changeDirection(this.nextDir)
+      this.nextDir = -1
+      this.hasMoved = true
+    }
+
+    super.update()
   }
 
   eatPellet(x: number, y: number) {
@@ -71,6 +76,7 @@ export class Pacman extends Character {
 
   private setEventListeners(input: Phaser.Input.Keyboard.KeyboardPlugin) {
     const left = () => {
+      console.log('left')
       this.nextDir = directions.LEFT
     }
 

@@ -3,15 +3,19 @@ import { Ghost } from './ghost'
 import { Character } from '../characters/character'
 
 export class Clyde extends Ghost {
+  protected readonly pelletCountToLeaveHouse = 60
+  protected readonly timerToLeaveHouse = 15000 // milliseconds
+
   constructor(
     scene: Phaser.Scene,
     gameMap: PacManMap,
     pacman: Character,
     scatterTarget: Phaser.Types.Math.Vector2Like,
   ) {
-    const x = 13 * 32 + 16
-    const y = 14 * 32 + 16
+    const x = 15.25 * 32
+    const y = 13.5 * 32
     super(scene, gameMap, x, y, scatterTarget, pacman, 'clyde')
+    this.setStartTimer()
   }
 
   // Clyde always chases Pac-Man directly

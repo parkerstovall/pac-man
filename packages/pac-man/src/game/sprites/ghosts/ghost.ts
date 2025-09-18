@@ -3,6 +3,7 @@ import { Character } from '../characters/character'
 import { directions, directionsArray, GHOST_SPEED } from '../../constants'
 
 export abstract class Ghost extends Character {
+  protected pelletCount: number = 0
   protected readonly speed: number = GHOST_SPEED
   protected readonly pacman: Character
   protected readonly gameMap: PacManMap
@@ -12,6 +13,8 @@ export abstract class Ghost extends Character {
   }
   protected target: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
   private previousGridCoords: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
+  protected abstract readonly pelletCountToLeaveHouse: number
+  protected abstract readonly timerToLeaveHouse: number
 
   constructor(
     scene: Phaser.Scene,
@@ -34,6 +37,27 @@ export abstract class Ghost extends Character {
     this.pacman = pacman
     this.gameMap = gameMap
     this.scatterTarget = scatterTarget
+  }
+
+  countPellet() {
+    this.pelletCount++
+
+    if (this.pelletCount === this.pelletCountToLeaveHouse) {
+      this.leaveHouse()
+    }
+  }
+
+  // Ghosts start moving after a delay
+  protected setStartTimer() {
+    console.log(this.timerToLeaveHouse)
+    this.scene.time.delayedCall(this.timerToLeaveHouse, () => {
+      this.leaveHouse()
+    })
+  }
+
+  private leaveHouse() {
+    console.log(`Ghost ${this.constructor.name} is leaving the house`)
+    // Move up out of the ghost house
   }
 
   onCenter() {

@@ -55,6 +55,22 @@ export class PacManScene extends Scene {
             return
           }
 
+          const surroundingBlocks = [
+            map[y - 1]?.[x], // Up
+            map[y + 1]?.[x], // Down
+            map[y]?.[x - 1], // Left
+            map[y]?.[x + 1], // Right
+            map[y - 1]?.[x - 1], // Up-Left
+            map[y - 1]?.[x + 1], // Up-Right
+            map[y + 1]?.[x - 1], // Down-Left
+            map[y + 1]?.[x + 1], // Down-Right
+          ]
+
+          // No pellets in the ghost house or next to it
+          if (surroundingBlocks.some((b) => b?.type === 'ghost-house')) {
+            return
+          }
+
           items.add(new Pellet(this, x, y))
         }
       })
@@ -78,6 +94,7 @@ export class PacManScene extends Scene {
         this.scoreDisplay.addPoints(item.points)
         item.destroy()
         this.pacman.eatPellet(item.coords.x, item.coords.y)
+        this.ghosts.forEach((ghost) => ghost.countPellet())
       },
       undefined,
       this,
@@ -123,7 +140,7 @@ export function createPacManScene(container: HTMLDivElement) {
       default: 'arcade',
       arcade: {
         gravity: { x: 0, y: 0 },
-        debug: true,
+        debug: false,
       },
     },
     scale: {
