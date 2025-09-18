@@ -15,6 +15,8 @@ export abstract class Ghost extends Character {
   private previousGridCoords: Phaser.Types.Math.Vector2Like = { x: 0, y: 0 }
   protected abstract readonly pelletCountToLeaveHouse: number
   protected abstract readonly timerToLeaveHouse: number
+  private hasLeftHouse: boolean = false
+  private isLeavingHouse: boolean = false
 
   constructor(
     scene: Phaser.Scene,
@@ -37,6 +39,10 @@ export abstract class Ghost extends Character {
     this.pacman = pacman
     this.gameMap = gameMap
     this.scatterTarget = scatterTarget
+
+    // Set the initial target to pacman position
+    // Just to get the ghosts moving initially
+    this.target = this.pacman.position
   }
 
   countPellet() {
@@ -49,15 +55,60 @@ export abstract class Ghost extends Character {
 
   // Ghosts start moving after a delay
   protected setStartTimer() {
-    console.log(this.timerToLeaveHouse)
     this.scene.time.delayedCall(this.timerToLeaveHouse, () => {
       this.leaveHouse()
     })
   }
 
   private leaveHouse() {
-    console.log(`Ghost ${this.constructor.name} is leaving the house`)
-    // Move up out of the ghost house
+    if (this.hasLeftHouse) {
+      return
+    }
+
+    this.hasLeftHouse = true
+    this.isLeavingHouse = true
+
+    const x = 14 * 32
+    const y = 11 * 32 + 16
+    if (this.x <= x) {
+      this.changeDirection(directions.RIGHT)
+    } else if (this.x >= x) {
+      this.changeDirection(directions.LEFT)
+    } else if (this.y <= y) {
+      this.changeDirection(directions.DOWN)
+    } else if (this.y >= y) {
+      this.changeDirection(directions.UP)
+    } else {
+      this.mapPathToTarget(this.target)
+      this.isLeavingHouse = false
+    }
+  }
+
+  update() {
+    // If the ghost is still in the house, do nothing
+    if (!this.hasLeftHouse) {
+      return
+    }
+
+    if (this.isLeavingHouse) {
+      const targetX = 14 * 32
+      const targetY = 11 * 32 + 16
+      if (this.direction === directions.UP && this.y <= targetY) {
+        this.setPosition(this.x, targetY)
+        this.isLeavingHouse = false
+        this.mapPathToTarget(this.target)
+      } else if (
+        (this.direction === directions.RIGHT && this.x >= targetX) ||
+        (this.direction === directions.LEFT && this.x <= targetX)
+      ) {
+        this.setPosition(targetX, this.y)
+        this.changeDirection(directions.UP)
+      }
+
+      return
+    }
+
+    super.update()
   }
 
   onCenter() {

@@ -23,6 +23,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
 
     this.gameMap = gameMap
     this.position = { x, y }
+    this.gridPosition = { x: Math.floor(x / 32), y: Math.floor(y / 32) }
     this.textureMap = textureMap
 
     scene.add.existing(this)

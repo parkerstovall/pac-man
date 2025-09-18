@@ -76,7 +76,6 @@ export class Pacman extends Character {
 
   private setEventListeners(input: Phaser.Input.Keyboard.KeyboardPlugin) {
     const left = () => {
-      console.log('left')
       this.nextDir = directions.LEFT
     }
 

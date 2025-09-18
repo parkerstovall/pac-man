@@ -8,11 +8,11 @@ import { SuperPellet } from './sprites/super-pellet'
 import { Item } from './sprites/abstracts/item'
 import { ActionItem } from './sprites/abstracts/action-item'
 import { Ghost } from './sprites/ghosts/ghost'
-import { Blinky } from './sprites/ghosts/blinky'
 import { PauseMenu } from './pause-scene'
 import { Pinky } from './sprites/ghosts/pinky'
-import { Inky } from './sprites/ghosts/inky'
+import { Blinky } from './sprites/ghosts/blinky'
 import { Clyde } from './sprites/ghosts/clyde'
+import { Inky } from './sprites/ghosts/inky'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman

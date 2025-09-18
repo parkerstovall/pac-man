@@ -4,7 +4,7 @@ import { Character } from '../characters/character'
 
 export class Clyde extends Ghost {
   protected readonly pelletCountToLeaveHouse = 60
-  protected readonly timerToLeaveHouse = 15000 // milliseconds
+  protected readonly timerToLeaveHouse = 11000 // milliseconds
 
   constructor(
     scene: Phaser.Scene,
