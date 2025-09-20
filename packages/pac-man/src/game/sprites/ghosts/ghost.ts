@@ -7,13 +7,14 @@ import {
   GHOST_SPEED_FRIGHTENED,
 } from '../../constants'
 
-enum GhostState {
+export enum GhostState {
   CHASE,
   SCATTER,
   FRIGHTENED,
 }
 
 export abstract class Ghost extends Character {
+  ghostState: GhostState = GhostState.SCATTER
   protected pelletCount: number = 0
   protected speed: number = GHOST_SPEED
   protected readonly pacman: Character
@@ -28,7 +29,7 @@ export abstract class Ghost extends Character {
   protected abstract readonly timerToLeaveHouse: number
   private hasLeftHouse: boolean = false
   private isLeavingHouse: boolean = false
-  private targetState: GhostState = GhostState.SCATTER
+
   private sequenceIndex: number = 0
   private sequenceTimer?: Phaser.Time.TimerEvent
   private frightenedTimer?: Phaser.Time.TimerEvent
@@ -100,7 +101,7 @@ export abstract class Ghost extends Character {
   }
 
   scare() {
-    this.state = GhostState.FRIGHTENED
+    this.ghostState = GhostState.FRIGHTENED
     this.speed = GHOST_SPEED_FRIGHTENED
     this.changeDirection(this.getOppositeDirection(this.direction))
     this.textureMap = this.frightenedTextureMap
@@ -127,7 +128,7 @@ export abstract class Ghost extends Character {
     }
 
     const sequence = this.modeSequences[this.sequenceIndex]
-    this.targetState = sequence.state
+    this.ghostState = sequence.state
 
     if (sequence.duration !== null) {
       this.sequenceTimer = this.scene.time.delayedCall(
@@ -217,7 +218,7 @@ export abstract class Ghost extends Character {
 
     if (this.direction === -1 || this.isAtIntersection()) {
       // Target for GhostState.CHASE is handled in subclasses
-      switch (this.targetState) {
+      switch (this.ghostState) {
         case GhostState.SCATTER:
           this.target = this.scatterTarget
           break

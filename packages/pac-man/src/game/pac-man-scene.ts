@@ -6,7 +6,7 @@ import { Pacman } from './sprites/pac-man'
 import { ScoreDisplay } from './ui/score-display'
 import { SuperPellet } from './sprites/super-pellet'
 import { Item } from './sprites/abstracts/item'
-import { Ghost } from './sprites/ghosts/ghost'
+import { Ghost, GhostState } from './sprites/ghosts/ghost'
 import { PauseMenu } from './pause-scene'
 import { Clyde } from './sprites/ghosts/clyde'
 import { Blinky } from './sprites/ghosts/blinky'
@@ -75,7 +75,10 @@ export class PacManScene extends Scene {
       })
     })
 
+    const ghostCollisionGroup = this.physics.add.group([])
+
     this.pacman = new Pacman(this, map)
+    ghostCollisionGroup.add(this.pacman)
 
     this.scoreDisplay = new ScoreDisplay(this, 4, 4)
     this.physics.add.overlap(
@@ -111,6 +114,18 @@ export class PacManScene extends Scene {
     this.ghosts.push(
       new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
     )
+
+    this.ghosts.forEach((ghost) => ghostCollisionGroup.add(ghost))
+
+    this.ghosts.forEach((ghost) => {
+      this.physics.add.overlap(ghost, ghostCollisionGroup, () => {
+        if (ghost.ghostState === GhostState.FRIGHTENED) {
+          this.scoreDisplay.addPoints(200)
+        } else {
+          console.log('Pacman hit')
+        }
+      })
+    })
   }
 
   update(): void {
