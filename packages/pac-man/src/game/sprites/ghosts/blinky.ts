@@ -1,6 +1,7 @@
 import { PacManMap } from 'pac-man-map-generator'
 import { Ghost } from './ghost'
 import { Character } from '../characters/character'
+import { directions } from '../../constants'
 
 export class Blinky extends Ghost {
   protected readonly pelletCountToLeaveHouse = 0
@@ -14,8 +15,15 @@ export class Blinky extends Ghost {
   ) {
     const x = 14 * 32
     const y = 11 * 32 + 16
-    super(scene, gameMap, x, y, scatterTarget, pacman, 'blinky')
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'blinky', [
+      directions.UP,
+      directions.RIGHT,
+      directions.DOWN,
+      directions.LEFT,
+    ])
+
     this.setStartTimer()
+    this.setFrame('blinky-left')
   }
 
   // Blinky always chases Pac-Man directly

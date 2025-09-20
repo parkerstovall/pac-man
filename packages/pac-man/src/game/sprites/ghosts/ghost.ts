@@ -1,10 +1,21 @@
 import { PacManMap } from 'pac-man-map-generator'
 import { Character } from '../characters/character'
-import { directions, directionsArray, GHOST_SPEED } from '../../constants'
+import {
+  directions,
+  directionsArray,
+  GHOST_SPEED,
+  GHOST_SPEED_FRIGHTENED,
+} from '../../constants'
+
+enum GhostState {
+  CHASE,
+  SCATTER,
+  FRIGHTENED,
+}
 
 export abstract class Ghost extends Character {
   protected pelletCount: number = 0
-  protected readonly speed: number = GHOST_SPEED
+  protected speed: number = GHOST_SPEED
   protected readonly pacman: Character
   protected readonly gameMap: PacManMap
   protected readonly scatterTarget: Phaser.Types.Math.Vector2Like = {
@@ -17,6 +28,38 @@ export abstract class Ghost extends Character {
   protected abstract readonly timerToLeaveHouse: number
   private hasLeftHouse: boolean = false
   private isLeavingHouse: boolean = false
+  private targetState: GhostState = GhostState.SCATTER
+  private sequenceIndex: number = 0
+  private sequenceTimer?: Phaser.Time.TimerEvent
+  private frightenedTimer?: Phaser.Time.TimerEvent
+  private modeSequences = [
+    { state: GhostState.SCATTER, duration: 5_000 },
+    { state: GhostState.CHASE, duration: 20_000 },
+    { state: GhostState.SCATTER, duration: 5_000 },
+    { state: GhostState.CHASE, duration: 20000 },
+    { state: GhostState.SCATTER, duration: 5_000 },
+    { state: GhostState.CHASE, duration: 20_000 },
+    { state: GhostState.SCATTER, duration: 5_000 },
+    { state: GhostState.CHASE, duration: null }, // -1 means indefinite
+  ]
+
+  private readonly directionPriority: number[]
+
+  private readonly defTextureMap
+
+  private frightenedTextureMap = {
+    [directions.LEFT]: 'frame:frightened',
+    [directions.RIGHT]: 'frame:frightened',
+    [directions.UP]: 'frame:frightened',
+    [directions.DOWN]: 'frame:frightened',
+  }
+
+  private frightenedEndTextureMap = {
+    [directions.LEFT]: 'frightened-end',
+    [directions.RIGHT]: 'frightened-end',
+    [directions.UP]: 'frightened-end',
+    [directions.DOWN]: 'frightened-end',
+  }
 
   constructor(
     scene: Phaser.Scene,
@@ -26,23 +69,26 @@ export abstract class Ghost extends Character {
     scatterTarget: Phaser.Types.Math.Vector2Like,
     pacman: Character,
     ghostName: string,
+    directionPriority: number[],
   ) {
-    const startingFrame = `${ghostName}-up`
+    const startingFrame = `frame:${ghostName}-up`
     const textureMap = {
-      [directions.LEFT]: `${ghostName}-left`,
-      [directions.RIGHT]: `${ghostName}-right`,
-      [directions.UP]: `${ghostName}-up`,
-      [directions.DOWN]: `${ghostName}-down`,
+      [directions.LEFT]: `frame:${ghostName}-left`,
+      [directions.RIGHT]: `frame:${ghostName}-right`,
+      [directions.UP]: `frame:${ghostName}-up`,
+      [directions.DOWN]: `frame:${ghostName}-down`,
     }
+
     super(scene, gameMap, x, y, textureMap, 'spritesheet', startingFrame)
 
+    this.directionPriority = directionPriority
+    this.previousGridCoords = this.gridPosition
+    this.defTextureMap = textureMap
     this.pacman = pacman
     this.gameMap = gameMap
     this.scatterTarget = scatterTarget
 
-    // Set the initial target to pacman position
-    // Just to get the ghosts moving initially
-    this.target = this.pacman.position
+    this.target = this.scatterTarget
   }
 
   countPellet() {
@@ -50,6 +96,47 @@ export abstract class Ghost extends Character {
 
     if (this.pelletCount === this.pelletCountToLeaveHouse) {
       this.leaveHouse()
+    }
+  }
+
+  scare() {
+    this.state = GhostState.FRIGHTENED
+    this.speed = GHOST_SPEED_FRIGHTENED
+    this.changeDirection(this.getOppositeDirection(this.direction))
+    this.textureMap = this.frightenedTextureMap
+    this.setFrame('frightened')
+    this.sequenceTimer?.destroy()
+
+    // Clear existing timer and set new one
+    this.frightenedTimer?.destroy()
+    this.frightenedTimer = this.scene.time.delayedCall(6_000, () => {
+      this.textureMap = this.frightenedEndTextureMap
+      this.anims.play('frightened-end', true)
+      this.frightenedTimer = this.scene.time.delayedCall(2_000, () => {
+        this.speed = GHOST_SPEED
+        this.textureMap = this.defTextureMap
+        this.changeDirection(this.direction)
+        this.startSequence()
+      })
+    })
+  }
+
+  private startSequence() {
+    if (this.sequenceIndex >= this.modeSequences.length) {
+      return
+    }
+
+    const sequence = this.modeSequences[this.sequenceIndex]
+    this.targetState = sequence.state
+
+    if (sequence.duration !== null) {
+      this.sequenceTimer = this.scene.time.delayedCall(
+        sequence.duration,
+        () => {
+          this.sequenceIndex++
+          this.startSequence()
+        },
+      )
     }
   }
 
@@ -74,13 +161,14 @@ export abstract class Ghost extends Character {
       this.changeDirection(directions.RIGHT)
     } else if (this.x >= x) {
       this.changeDirection(directions.LEFT)
-    } else if (this.y <= y) {
-      this.changeDirection(directions.DOWN)
     } else if (this.y >= y) {
       this.changeDirection(directions.UP)
     } else {
+      this.gridPosition = { x: 14, y: 11 }
+      this.previousGridCoords = this.gridPosition
       this.mapPathToTarget(this.target)
       this.isLeavingHouse = false
+      this.startSequence()
     }
   }
 
@@ -94,9 +182,12 @@ export abstract class Ghost extends Character {
       const targetX = 14 * 32
       const targetY = 11 * 32 + 16
       if (this.direction === directions.UP && this.y <= targetY) {
-        this.setPosition(this.x, targetY)
+        this.gridPosition = { x: 14, y: 11 }
+        this.previousGridCoords = this.gridPosition
         this.isLeavingHouse = false
+        this.setPosition(targetX, targetY)
         this.mapPathToTarget(this.target)
+        this.startSequence()
       } else if (
         (this.direction === directions.RIGHT && this.x >= targetX) ||
         (this.direction === directions.LEFT && this.x <= targetX)
@@ -113,9 +204,6 @@ export abstract class Ghost extends Character {
 
   onCenter() {
     const newCoords = this.gridPosition
-    // console.log(
-    //   `Ghost: ${this.constructor.name}, Target: ${this.target.x},${this.target.y}`,
-    // )
 
     // Only recalculate path if the ghost has moved to a new grid square
     if (
@@ -128,6 +216,16 @@ export abstract class Ghost extends Character {
     this.previousGridCoords = newCoords
 
     if (this.direction === -1 || this.isAtIntersection()) {
+      // Target for GhostState.CHASE is handled in subclasses
+      switch (this.targetState) {
+        case GhostState.SCATTER:
+          this.target = this.scatterTarget
+          break
+        case GhostState.FRIGHTENED:
+          this.changeDirection(this.getRandomDirection())
+          return
+      }
+
       this.mapPathToTarget(this.target)
       return
     }
@@ -135,28 +233,44 @@ export abstract class Ghost extends Character {
     this.checkForWall()
   }
 
-  private mapPathToTarget(target: Phaser.Types.Math.Vector2Like) {
-    // If already at the target, do nothing
-    if (
-      this.previousGridCoords.x === target.x &&
-      this.previousGridCoords.y === target.y
-    ) {
-      return
+  private getRandomDirection(): number {
+    const possibleDirections = directionsArray.filter(
+      (d) => d.dir !== this.getOppositeDirection(this.direction),
+    )
+
+    const validDirections = possibleDirections.filter((d) => {
+      const newX = this.previousGridCoords.x + d.x
+      const newY = this.previousGridCoords.y + d.y
+      return (
+        this.gameMap[newY]?.[newX]?.type !== 'wall' &&
+        this.gameMap[newY]?.[newX]?.type !== 'ghost-house'
+      )
+    })
+
+    if (validDirections.length === 0) {
+      return this.getOppositeDirection(this.direction)
     }
 
+    return Phaser.Utils.Array.GetRandom(validDirections).dir
+  }
+
+  private mapPathToTarget(target: Phaser.Types.Math.Vector2Like) {
     // Calculate the shortest distance from
     // each surrounding square to the target
     // excluding the backwards direction
-    const directionsToCheck = directionsArray.filter(
-      (d) => d.dir !== this.getOppositeDirection(this.direction),
-    )
+    const directionsToCheck = this.directionPriority
+      .filter((d) => d !== this.getOppositeDirection(this.direction))
+      .map((dir) => {
+        return directionsArray.find((d) => d.dir === dir)
+      })
+      .filter((d) => d !== undefined)
 
     let shortestDistance = Infinity
     let bestDirection = this.direction
 
     directionsToCheck.forEach((d) => {
-      const newX = this.previousGridCoords.x + d.x
-      const newY = this.previousGridCoords.y + d.y
+      const newX = this.gridPosition.x + d.x
+      const newY = this.gridPosition.y + d.y
 
       if (
         this.gameMap[newY]?.[newX]?.type !== 'wall' &&
@@ -165,6 +279,12 @@ export abstract class Ghost extends Character {
         const distance = Math.hypot(target.x - newX, target.y - newY)
         if (distance < shortestDistance) {
           shortestDistance = distance
+          bestDirection = d.dir
+        } else if (
+          distance === shortestDistance &&
+          bestDirection === this.direction
+        ) {
+          // If distances are equal, prefer to keep moving in the same direction
           bestDirection = d.dir
         }
       }
@@ -205,7 +325,7 @@ export abstract class Ghost extends Character {
   static loadTextures(textures: Phaser.Textures.TextureManager) {
     const tex = textures.get('spritesheet')
 
-    const ghosts = ['blinky', 'pinky', 'inky', 'clyde']
+    const ghosts = ['blinky', 'pinky', 'inky', 'clyde', 'eyes']
     const spriteMaps = []
     for (let i = 0; i < ghosts.length; i++) {
       const ghost = ghosts[i]
@@ -217,9 +337,24 @@ export abstract class Ghost extends Character {
       )
     }
 
+    spriteMaps.push({ key: `frightened`, xPos: 10, yPos: 4 })
+    spriteMaps.push({ key: `frightened-flash`, xPos: 10, yPos: 6 })
+
     for (let i = 0; i < spriteMaps.length; i++) {
       const { key, xPos, yPos } = spriteMaps[i]
       tex.add(key, 0, xPos * 16, yPos * 16, 32, 32)
     }
+  }
+
+  static loadAnimations(anims: Phaser.Animations.AnimationManager) {
+    anims.create({
+      key: 'frightened-end',
+      frames: [
+        { key: 'spritesheet', frame: 'frightened-flash' },
+        { key: 'spritesheet', frame: 'frightened' },
+      ],
+      repeat: -1,
+      frameRate: 5,
+    })
   }
 }

@@ -14,7 +14,14 @@ export class Pinky extends Ghost {
   ) {
     const x = 14 * 32
     const y = 13.5 * 32
-    super(scene, gameMap, x, y, scatterTarget, pacman, 'pinky')
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'pinky', [
+      directions.UP,
+      directions.LEFT,
+      directions.DOWN,
+      directions.RIGHT,
+    ])
+
+    this.setFrame('pinky-up')
     this.setStartTimer()
   }
 

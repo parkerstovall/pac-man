@@ -1,10 +1,11 @@
 import { PacManMap } from 'pac-man-map-generator'
 import { Ghost } from './ghost'
 import { Character } from '../characters/character'
+import { directions } from '../../constants'
 
 export class Clyde extends Ghost {
   protected readonly pelletCountToLeaveHouse = 60
-  protected readonly timerToLeaveHouse = 11000 // milliseconds
+  protected readonly timerToLeaveHouse = 11_000 // milliseconds
 
   constructor(
     scene: Phaser.Scene,
@@ -14,7 +15,13 @@ export class Clyde extends Ghost {
   ) {
     const x = 15.25 * 32
     const y = 13.5 * 32
-    super(scene, gameMap, x, y, scatterTarget, pacman, 'clyde')
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'clyde', [
+      directions.DOWN,
+      directions.LEFT,
+      directions.UP,
+      directions.RIGHT,
+    ])
+    this.setFrame('clyde-left')
     this.setStartTimer()
   }
 

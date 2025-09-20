@@ -16,8 +16,14 @@ export class Inky extends Ghost {
   ) {
     const x = 12.75 * 32
     const y = 13.5 * 32
-    super(scene, gameMap, x, y, scatterTarget, pacman, 'inky')
+    super(scene, gameMap, x, y, scatterTarget, pacman, 'inky', [
+      directions.RIGHT,
+      directions.DOWN,
+      directions.LEFT,
+      directions.UP,
+    ])
     this.blinky = blinky
+    this.setFrame('inky-right')
     this.setStartTimer()
   }
 

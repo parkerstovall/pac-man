@@ -8,7 +8,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   protected readonly gameMap: PacManMap
   protected abstract readonly speed: number
 
-  private readonly textureMap: Record<number, string>
+  protected textureMap: Record<number, string>
 
   constructor(
     scene: Phaser.Scene,
@@ -126,20 +126,26 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     switch (direction) {
       case directions.LEFT:
         this.setVelocity(-this.speed, 0)
-        this.anims.play(this.textureMap[directions.LEFT], true)
         break
       case directions.RIGHT:
         this.setVelocity(this.speed, 0)
-        this.anims.play(this.textureMap[directions.RIGHT], true)
         break
       case directions.UP:
         this.setVelocity(0, -this.speed)
-        this.anims.play(this.textureMap[directions.UP], true)
         break
       case directions.DOWN:
         this.setVelocity(0, this.speed)
-        this.anims.play(this.textureMap[directions.DOWN], true)
         break
+    }
+
+    const tex = this.textureMap[direction]
+    if (tex) {
+      this.anims.stop()
+      if (tex.startsWith('frame:')) {
+        this.setFrame(tex.replace('frame:', ''))
+      } else {
+        this.anims.play(tex)
+      }
     }
   }
 

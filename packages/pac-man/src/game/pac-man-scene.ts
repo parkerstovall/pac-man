@@ -6,13 +6,12 @@ import { Pacman } from './sprites/pac-man'
 import { ScoreDisplay } from './ui/score-display'
 import { SuperPellet } from './sprites/super-pellet'
 import { Item } from './sprites/abstracts/item'
-import { ActionItem } from './sprites/abstracts/action-item'
 import { Ghost } from './sprites/ghosts/ghost'
 import { PauseMenu } from './pause-scene'
-import { Pinky } from './sprites/ghosts/pinky'
-import { Blinky } from './sprites/ghosts/blinky'
 import { Clyde } from './sprites/ghosts/clyde'
+import { Blinky } from './sprites/ghosts/blinky'
 import { Inky } from './sprites/ghosts/inky'
+import { Pinky } from './sprites/ghosts/pinky'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
@@ -87,8 +86,8 @@ export class PacManScene extends Scene {
           return
         }
 
-        if (item instanceof ActionItem) {
-          item.onCollect()
+        if (item instanceof SuperPellet) {
+          this.ghosts.forEach((ghost) => ghost.scare())
         }
 
         this.scoreDisplay.addPoints(item.points)
@@ -123,6 +122,7 @@ export class PacManScene extends Scene {
     Pacman.loadTextures(this.textures)
     Pacman.loadAnimations(this.anims)
     Ghost.loadTextures(this.textures)
+    Ghost.loadAnimations(this.anims)
     Wall.addWallGraphics(this)
     Pellet.addPelletGraphics(this)
     SuperPellet.addSuperPelletGraphics(this)
