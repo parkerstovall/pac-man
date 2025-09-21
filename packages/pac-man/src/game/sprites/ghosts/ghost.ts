@@ -272,8 +272,10 @@ export abstract class Ghost extends Character {
     directionsToCheck.forEach((d) => {
       const newX = this.gridPosition.x + d.x
       const newY = this.gridPosition.y + d.y
+      const block = this.gameMap[newY]?.[newX]
 
       if (
+        block &&
         this.gameMap[newY]?.[newX]?.type !== 'wall' &&
         this.gameMap[newY]?.[newX]?.type !== 'ghost-house'
       ) {

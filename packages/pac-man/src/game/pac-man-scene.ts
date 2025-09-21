@@ -8,10 +8,7 @@ import { SuperPellet } from './sprites/super-pellet'
 import { Item } from './sprites/abstracts/item'
 import { Ghost, GhostState } from './sprites/ghosts/ghost'
 import { PauseMenu } from './pause-scene'
-import { Clyde } from './sprites/ghosts/clyde'
 import { Blinky } from './sprites/ghosts/blinky'
-import { Inky } from './sprites/ghosts/inky'
-import { Pinky } from './sprites/ghosts/pinky'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
@@ -105,15 +102,15 @@ export class PacManScene extends Scene {
     //Ghosts
     // Corner order: top-left, top-right, bottom-left, bottom-right
     this.ghosts.push(
-      new Pinky(this, map, this.pacman, fourCorners[0]),
+      //new Pinky(this, map, this.pacman, fourCorners[0]),
       new Blinky(this, map, this.pacman, fourCorners[1]),
-      new Clyde(this, map, this.pacman, fourCorners[2]),
+      //new Clyde(this, map, this.pacman, fourCorners[2]),
     )
 
     // Inky needs a reference to Blinky to determine its target
-    this.ghosts.push(
-      new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
-    )
+    // this.ghosts.push(
+    //   new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
+    // )
 
     this.ghosts.forEach((ghost) => ghostCollisionGroup.add(ghost))
 
