@@ -1,6 +1,6 @@
-# Pac-Man Map Generator
+# Pac-Man
 
-A lightweight TypeScript utility for generating random Pac-Man maps.
+The classic game of Pac-Man! Rebuilt using PhaserJS and a custom random map generator. 
 
 ## 📦 Installation
 
