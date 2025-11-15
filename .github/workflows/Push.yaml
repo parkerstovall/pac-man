@@ -22,7 +22,7 @@ jobs:
       - name: Get version from package.json
         id: pkg
         run: |
-          cd packages/pac-man-map-generator
+          cd packages/pac-man
           echo "version=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists
@@ -56,7 +56,7 @@ jobs:
         run: |
           npm ci
 
-          cd packages/pac-man-map-generator
+          cd packages/pac-man
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
