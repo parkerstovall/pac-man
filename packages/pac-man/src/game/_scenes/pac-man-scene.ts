@@ -35,6 +35,7 @@ export class PacManScene extends Scene {
 
   create() {
     this.gameOver = false
+    this.physics.world.colliders.destroy()
 
     // Pause functionality
     this.input.keyboard?.on('keydown-P', () => {

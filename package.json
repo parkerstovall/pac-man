@@ -3,7 +3,8 @@
     "private": true,
     "scripts": {
         "dev": "concurrently \"npm run dev --prefix packages/example\" \"npm run dev --prefix packages/pac-man\"",
-        "lint": "cd packages/example && npm run lint && cd ../pac-man && npm run lint"
+        "lint": "cd packages/example && npm run lint && cd ../pac-man && npm run lint",
+        "patch": "cd packages/pac-man && npm run patch"
     },
     "workspaces": [
         "packages/*"
