@@ -15,8 +15,7 @@ export class ScoreDisplay extends Phaser.GameObjects.Text {
     this.setText(`Score: ${this.score}`)
   }
 
-  public reset() {
-    this.score = 0
-    this.setText('Score: 0')
+  public getScore() {
+    return this.score
   }
 }

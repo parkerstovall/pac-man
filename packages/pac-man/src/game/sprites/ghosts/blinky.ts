@@ -7,6 +7,8 @@ export class Blinky extends Ghost {
   protected readonly pelletCountToLeaveHouse = 0
   protected readonly timerToLeaveHouse = 0 // milliseconds
 
+  randomId = Math.random().toString(36).substring(2, 15)
+
   constructor(
     scene: Phaser.Scene,
     gameMap: PacManMap,
@@ -22,6 +24,7 @@ export class Blinky extends Ghost {
       directions.LEFT,
     ])
 
+    console.log(`Blinky[${this.randomId}] constructed at (${x}, ${y})`)
     this.setStartTimer()
     this.setFrame('blinky-left')
   }

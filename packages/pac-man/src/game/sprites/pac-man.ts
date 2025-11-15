@@ -31,6 +31,17 @@ export class Pacman extends Character {
     }
   }
 
+  handleDeath() {
+    this.setVelocity(0, 0)
+    this.anims.play('pacman-death', false)
+
+    const animDuration = (11 / 8) * 1000 // 10 frames at 8fps = 1.25 seconds
+
+    this.scene.time.delayedCall(animDuration, () => {
+      this.scene.events.emit('game-over')
+    })
+  }
+
   update() {
     // Game starts
     if (this.nextDir !== -1 && !this.hasMoved) {
@@ -149,6 +160,61 @@ export class Pacman extends Character {
         xPos: 8,
         yPos: 0,
       },
+      {
+        key: 'pacman-dead-1',
+        xPos: 0,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-2',
+        xPos: 2,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-3',
+        xPos: 4,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-4',
+        xPos: 6,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-5',
+        xPos: 8,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-6',
+        xPos: 10,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-7',
+        xPos: 12,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-8',
+        xPos: 14,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-9',
+        xPos: 16,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-10',
+        xPos: 18,
+        yPos: 12,
+      },
+      {
+        key: 'pacman-dead-11',
+        xPos: 20,
+        yPos: 12,
+      },
     ]
 
     for (let i = 0; i < pacManSprites.length; i++) {
@@ -204,6 +270,25 @@ export class Pacman extends Character {
       ],
       repeat: -1,
       frameRate: 16,
+    })
+
+    anims.create({
+      key: 'pacman-death',
+      frames: [
+        { key: 'spritesheet', frame: 'pacman-dead-1' },
+        { key: 'spritesheet', frame: 'pacman-dead-2' },
+        { key: 'spritesheet', frame: 'pacman-dead-3' },
+        { key: 'spritesheet', frame: 'pacman-dead-4' },
+        { key: 'spritesheet', frame: 'pacman-dead-5' },
+        { key: 'spritesheet', frame: 'pacman-dead-6' },
+        { key: 'spritesheet', frame: 'pacman-dead-7' },
+        { key: 'spritesheet', frame: 'pacman-dead-8' },
+        { key: 'spritesheet', frame: 'pacman-dead-9' },
+        { key: 'spritesheet', frame: 'pacman-dead-10' },
+        { key: 'spritesheet', frame: 'pacman-dead-11' },
+      ],
+      frameRate: 10,
+      repeat: 0,
     })
   }
 }

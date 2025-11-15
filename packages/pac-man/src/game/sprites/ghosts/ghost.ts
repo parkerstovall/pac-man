@@ -11,6 +11,7 @@ export enum GhostState {
   CHASE,
   SCATTER,
   FRIGHTENED,
+  DEAD,
 }
 
 export abstract class Ghost extends Character {
@@ -47,6 +48,7 @@ export abstract class Ghost extends Character {
   private readonly directionPriority: number[]
 
   private readonly defTextureMap
+  private readonly startingCoords: Phaser.Types.Math.Vector2Like
 
   private frightenedTextureMap = {
     [directions.LEFT]: 'frame:frightened',
@@ -82,12 +84,18 @@ export abstract class Ghost extends Character {
 
     super(scene, gameMap, x, y, textureMap, 'spritesheet', startingFrame)
 
+    this.startingCoords = { x, y }
     this.directionPriority = directionPriority
     this.previousGridCoords = this.gridPosition
     this.defTextureMap = textureMap
     this.pacman = pacman
     this.gameMap = gameMap
     this.scatterTarget = scatterTarget
+    this.frightenedTimer?.destroy()
+    this.frightenedTimer = undefined
+    this.sequenceTimer?.destroy()
+    this.sequenceTimer = undefined
+    this.sequenceIndex = 0
 
     this.target = this.scatterTarget
   }
@@ -103,7 +111,17 @@ export abstract class Ghost extends Character {
   scare() {
     this.ghostState = GhostState.FRIGHTENED
     this.speed = GHOST_SPEED_FRIGHTENED
-    this.changeDirection(this.getOppositeDirection(this.direction))
+    let newDirection = this.getOppositeDirection(this.direction)
+    const canMoveInOppositeDirection = this.canMove(
+      this.gridPosition,
+      newDirection,
+    )
+
+    if (!canMoveInOppositeDirection) {
+      newDirection = this.getRandomDirection()
+    }
+
+    this.changeDirection(newDirection)
     this.textureMap = this.frightenedTextureMap
     this.setFrame('frightened')
     this.sequenceTimer?.destroy()
@@ -234,6 +252,49 @@ export abstract class Ghost extends Character {
     this.checkForWall()
   }
 
+  handleDeath() {
+    if (this.body) {
+      this.body.stop()
+      this.body.enable = false
+    }
+
+    this.setAlpha(0)
+    this.speed = 0
+    this.ghostState = GhostState.DEAD
+    this.scene.time.delayedCall(3000, () => {
+      this.setAlpha(1)
+      if (this.body) {
+        this.body.enable = true
+      }
+      this.reset()
+    })
+  }
+
+  private reset() {
+    // Stop all timers
+    this.frightenedTimer?.destroy()
+    this.sequenceTimer?.destroy()
+
+    // Reset state
+    this.ghostState = GhostState.SCATTER
+    this.speed = GHOST_SPEED
+    this.hasLeftHouse = false
+    this.isLeavingHouse = false
+    this.textureMap = this.defTextureMap
+
+    // Reset position to spawn
+    this.setPosition(this.startingCoords.x, this.startingCoords.y)
+    this.gridPosition = {
+      x: Math.floor(this.startingCoords.x / 32),
+      y: Math.floor(this.startingCoords.y / 32),
+    }
+    this.previousGridCoords = this.gridPosition
+    this.direction = -1
+
+    // Restart house timer
+    this.setStartTimer()
+  }
+
   private getRandomDirection(): number {
     const possibleDirections = directionsArray.filter(
       (d) => d.dir !== this.getOppositeDirection(this.direction),
@@ -258,7 +319,7 @@ export abstract class Ghost extends Character {
   private mapPathToTarget(target: Phaser.Types.Math.Vector2Like) {
     // Calculate the shortest distance from
     // each surrounding square to the target
-    // excluding the backwards direction
+    // excluding the back wards direction
     const directionsToCheck = this.directionPriority
       .filter((d) => d !== this.getOppositeDirection(this.direction))
       .map((dir) => {

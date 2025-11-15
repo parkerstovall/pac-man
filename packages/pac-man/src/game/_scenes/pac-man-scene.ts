@@ -1,19 +1,24 @@
 import { Scene } from 'phaser'
-import { Wall } from './sprites/wall'
+import { Wall } from '../sprites/wall'
 import { generateMap } from 'pac-man-map-generator'
-import { Pellet } from './sprites/pellet'
-import { Pacman } from './sprites/pac-man'
-import { ScoreDisplay } from './ui/score-display'
-import { SuperPellet } from './sprites/super-pellet'
-import { Item } from './sprites/abstracts/item'
-import { Ghost, GhostState } from './sprites/ghosts/ghost'
+import { Pellet } from '../sprites/pellet'
+import { Pacman } from '../sprites/pac-man'
+import { ScoreDisplay } from '../ui/score-display'
+import { SuperPellet } from '../sprites/super-pellet'
+import { Item } from '../sprites/abstracts/item'
+import { Ghost, GhostState } from '../sprites/ghosts/ghost'
 import { PauseMenu } from './pause-scene'
-import { Blinky } from './sprites/ghosts/blinky'
+import { Blinky } from '../sprites/ghosts/blinky'
+import { Clyde } from '../sprites/ghosts/clyde'
+import { Inky } from '../sprites/ghosts/inky'
+import { Pinky } from '../sprites/ghosts/pinky'
+import { GameOverScene } from './game-over-scene'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
   private ghosts: Ghost[] = []
   private scoreDisplay!: ScoreDisplay
+  private gameOver: boolean = false
 
   constructor() {
     super('PacManScene')
@@ -21,7 +26,7 @@ export class PacManScene extends Scene {
 
   preload() {
     const spriteSheet = new URL(
-      './../../assets/spritesheet.png',
+      './../../../assets/spritesheet.png',
       import.meta.url,
     ).href
 
@@ -29,10 +34,20 @@ export class PacManScene extends Scene {
   }
 
   create() {
+    this.gameOver = false
+
     // Pause functionality
     this.input.keyboard?.on('keydown-P', () => {
       this.scene.pause()
       this.scene.launch('PauseMenu')
+    })
+
+    this.events.on('game-over', () => {
+      this.gameOver = true
+      this.physics.pause()
+      this.scene.launch('GameOverScene', {
+        score: this.scoreDisplay.getScore(),
+      })
     })
 
     this.createGraphics()
@@ -102,32 +117,38 @@ export class PacManScene extends Scene {
     //Ghosts
     // Corner order: top-left, top-right, bottom-left, bottom-right
     this.ghosts.push(
-      //new Pinky(this, map, this.pacman, fourCorners[0]),
+      new Pinky(this, map, this.pacman, fourCorners[0]),
       new Blinky(this, map, this.pacman, fourCorners[1]),
-      //new Clyde(this, map, this.pacman, fourCorners[2]),
+      new Clyde(this, map, this.pacman, fourCorners[2]),
     )
 
     // Inky needs a reference to Blinky to determine its target
-    // this.ghosts.push(
-    //   new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
-    // )
+    this.ghosts.push(
+      new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
+    )
 
     this.ghosts.forEach((ghost) => ghostCollisionGroup.add(ghost))
 
-    this.ghosts.forEach((ghost) => {
-      this.physics.add.overlap(ghost, ghostCollisionGroup, () => {
-        if (ghost.ghostState === GhostState.FRIGHTENED) {
-          this.scoreDisplay.addPoints(200)
-        } else {
-          console.log('Pacman hit')
-        }
-      })
+    this.physics.add.overlap(this.pacman, ghostCollisionGroup, (_, o2) => {
+      const ghost = o2 as Ghost
+      if (ghost.ghostState === GhostState.FRIGHTENED) {
+        this.scoreDisplay.addPoints(200)
+        ghost.handleDeath()
+      } else {
+        this.pacman.handleDeath()
+      }
     })
   }
 
   update(): void {
+    if (this.gameOver) {
+      return
+    }
+
     this.pacman.update()
-    this.ghosts.forEach((ghost) => ghost.update())
+    this.ghosts.forEach((ghost) => {
+      if (ghost.ghostState !== GhostState.DEAD) ghost.update()
+    })
   }
 
   private createGraphics() {
@@ -159,7 +180,7 @@ export function createPacManScene(container: HTMLDivElement) {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [PacManScene, PauseMenu],
+    scene: [PacManScene, PauseMenu, GameOverScene],
   }
 
   return new Phaser.Game(config)

@@ -87,8 +87,6 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  protected abstract onCenter(cell: Phaser.Types.Math.Vector2Like): void
-
   protected canMove(
     cell: { x: number; y: number },
     direction: number,
@@ -163,4 +161,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
         return -1
     }
   }
+
+  protected abstract onCenter(cell: Phaser.Types.Math.Vector2Like): void
+  abstract handleDeath(): void
 }
