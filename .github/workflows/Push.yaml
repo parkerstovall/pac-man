@@ -19,7 +19,6 @@ jobs:
     uses: 'parkerstovall/workflows/.github/workflows/Push_PackageUpdate.yaml@main'
     needs: publish-package
     with:
-      package_directory: packages/pac-man
       repo: 'parkerstovall/parker-stovall.com'
       package_name: 'pac-man-phaser'
     secrets:
