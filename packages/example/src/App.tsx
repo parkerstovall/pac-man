@@ -1,4 +1,4 @@
-import { PacMan } from 'pac-man'
+import { PacMan } from 'pac-man-phaser'
 import './App.css'
 
 export function App() {
