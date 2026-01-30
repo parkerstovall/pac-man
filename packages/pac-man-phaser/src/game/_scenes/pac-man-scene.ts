@@ -117,16 +117,15 @@ export class PacManScene extends Scene {
 
     //Ghosts
     // Corner order: top-left, top-right, bottom-left, bottom-right
+    const blinky = new Blinky(this, map, this.pacman, fourCorners[1])
     this.ghosts.push(
       new Pinky(this, map, this.pacman, fourCorners[0]),
-      new Blinky(this, map, this.pacman, fourCorners[1]),
+      blinky,
       new Clyde(this, map, this.pacman, fourCorners[2]),
     )
 
     // Inky needs a reference to Blinky to determine its target
-    this.ghosts.push(
-      new Inky(this, map, this.pacman, this.ghosts[0], fourCorners[3]),
-    )
+    this.ghosts.push(new Inky(this, map, this.pacman, blinky, fourCorners[3]))
 
     this.ghosts.forEach((ghost) => ghostCollisionGroup.add(ghost))
 
