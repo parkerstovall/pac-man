@@ -25,10 +25,13 @@ export class PacManScene extends Scene {
   }
 
   preload() {
-    const spriteSheet = new URL(
-      '../../../assets/spritesheet.webp',
-      import.meta.url,
-    ).href
+    const currentLoc = import.meta.url
+    const basePath = currentLoc.substring(
+      0,
+      currentLoc.lastIndexOf('/game/') + 6,
+    )
+
+    const spriteSheet = new URL('../assets/spritesheet.webp', basePath).href
 
     this.load.image('spritesheet', spriteSheet)
   }
