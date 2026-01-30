@@ -1,12 +1,11 @@
 {
   "name": "pac-man-phaser",
   "type": "module",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "dist/assets"
+    "dist"
   ],
   "exports": {
     ".": {
@@ -15,8 +14,8 @@
     }
   },
   "scripts": {
-    "build": "tsc && cp -r assets dist",
-    "dev": "cp -r assets dist && tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "lint": "eslint ./src --fix",
     "patch": "npm version patch --no-git-tag-version",
     "prepublishOnly": "npm run build"

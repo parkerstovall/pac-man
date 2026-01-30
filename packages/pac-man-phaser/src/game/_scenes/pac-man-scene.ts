@@ -7,12 +7,13 @@ import { ScoreDisplay } from '../ui/score-display'
 import { SuperPellet } from '../sprites/super-pellet'
 import { Item } from '../sprites/abstracts/item'
 import { Ghost, GhostState } from '../sprites/ghosts/ghost'
-import { PauseMenu } from './pause-scene'
 import { Blinky } from '../sprites/ghosts/blinky'
 import { Clyde } from '../sprites/ghosts/clyde'
 import { Inky } from '../sprites/ghosts/inky'
 import { Pinky } from '../sprites/ghosts/pinky'
+import { PauseMenu } from './pause-scene'
 import { GameOverScene } from './game-over-scene'
+import spritesheet from '../../../assets/spritesheet.webp'
 
 export class PacManScene extends Scene {
   private pacman!: Pacman
@@ -25,15 +26,7 @@ export class PacManScene extends Scene {
   }
 
   preload() {
-    let basePath = import.meta.url
-    const index = basePath.lastIndexOf('/game/')
-    if (index !== -1) {
-      basePath = basePath.substring(0, index + 6)
-    }
-
-    const spriteSheet = new URL('../assets/spritesheet.webp', basePath).href
-
-    this.load.image('spritesheet', spriteSheet)
+    this.load.image('spritesheet', spritesheet)
   }
 
   create() {
