@@ -24,7 +24,6 @@ export class Blinky extends Ghost {
       directions.LEFT,
     ])
 
-    console.log(`Blinky[${this.randomId}] constructed at (${x}, ${y})`)
     this.setStartTimer()
     this.setFrame('blinky-left')
   }
