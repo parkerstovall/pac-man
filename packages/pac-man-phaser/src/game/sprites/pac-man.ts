@@ -29,6 +29,8 @@ export class Pacman extends Character {
     if (scene.input.keyboard) {
       this.setEventListeners(scene.input.keyboard)
     }
+
+    this.setTouchListeners(scene.input)
   }
 
   handleDeath() {
@@ -83,6 +85,44 @@ export class Pacman extends Character {
       this.setVelocity(0, 0)
       this.anims.stop()
     }
+  }
+
+  private static readonly MIN_SWIPE_DISTANCE = 20
+
+  private setTouchListeners(input: Phaser.Input.InputPlugin) {
+    let startX = 0
+    let startY = 0
+
+    const onPointerDown = (pointer: Phaser.Input.Pointer) => {
+      startX = pointer.x
+      startY = pointer.y
+    }
+
+    const onPointerUp = (pointer: Phaser.Input.Pointer) => {
+      const dx = pointer.x - startX
+      const dy = pointer.y - startY
+
+      if (
+        Math.abs(dx) < Pacman.MIN_SWIPE_DISTANCE &&
+        Math.abs(dy) < Pacman.MIN_SWIPE_DISTANCE
+      ) {
+        return
+      }
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        this.nextDir = dx > 0 ? directions.RIGHT : directions.LEFT
+      } else {
+        this.nextDir = dy > 0 ? directions.DOWN : directions.UP
+      }
+    }
+
+    input.on('pointerdown', onPointerDown)
+    input.on('pointerup', onPointerUp)
+
+    this.once('destroy', () => {
+      input.off('pointerdown', onPointerDown)
+      input.off('pointerup', onPointerUp)
+    })
   }
 
   private setEventListeners(input: Phaser.Input.Keyboard.KeyboardPlugin) {
